@@ -1,0 +1,239 @@
+<html>
+<head>
+<script
+	src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+<link rel="stylesheet"
+	href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.0/themes/smoothness/jquery-ui.css">
+<script
+	src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.0/jquery-ui.min.js"></script>
+<style type="text/css">
+body {
+	background-color: #DDDDDD;
+}
+
+h1 {
+	background-color: white;
+	border: 1px solid black;
+	padding: 20px;
+	margin: 20px;
+	width: 1080px;
+}
+
+li {
+	list-style-type: none;
+	padding-left: 1px;
+	margin-left: 0;
+}
+
+ul {
+	padding-left: 0;
+	margin-left: 0;
+}
+
+div.field {
+	border: 1px solid black;
+	padding: 20px;
+	width: 500px;
+	margin: 20px;
+	max-height: 500px;
+	overflow-y: auto;
+	background-color: white;
+}
+
+div.first-row{
+	min-height: 500px;
+}
+div.second-row{
+	min-height: 300px;
+}
+</style>
+<script type="text/javascript">
+	data = {
+		documents : Array(),
+		entities : Array()
+	};
+
+	var documents = Array();
+	var apiBase = "http://localhost:8080";
+
+	function loadAuthorities(entity) {
+		$('#authorities-heading').html(
+				"Authoritative documents about \"" + entity + "\"");
+		$.get(apiBase + "/authorities/api/load-authorities?text="
+				+ encodeURIComponent(entity), function(result) {
+
+			$('#authorities').html("");
+			for (var i = 0; i < result.length; i++) {
+				var doc = result[i];
+				var html = "<li><a uri='" + encodeURIComponent(doc["doc"])
+						+ "' href='#'>" + doc["doc"] + " (" + doc["count"]
+						+ " occurences)" + "</a></li>\n";
+				$('#authorities').append(html);
+			}
+
+			$('#authorities a').click(function(e) {
+				e.preventDefault();
+				var uri = $(this).attr("uri");
+				uri = decodeURIComponent(uri);
+				loadDocumentFromAuthority(uri);
+			});
+		});
+	}
+
+	function loadDocumentFromAuthority(uri) {
+		$.get(apiBase + "/authorities/api/load-text?resource="
+				+ encodeURIComponent(uri), function(result) {
+			loadDocument(uri, result);
+		});
+	}
+
+	function loadEntities(resource) {
+		$.get(apiBase + "/authorities/api/load-entities?resource="
+				+ encodeURIComponent(resource), function(result) {
+			data.entities = result;
+			$('#entities').html("");
+
+			if (result.length == 0) {
+				$("#entities").html(
+						"This document does not contain any entities.");
+			}
+			for (var i = 0; i < result.length; i++) {
+				var e = result[i];
+				var html = "<li><a href='#'>" + e["text"] + "</a></li>";
+				$('#entities').append(html);
+			}
+
+			$('#entities a').click(function(e) {
+				e.preventDefault();
+				var text = $(this).html();
+				loadAuthorities(text);
+			});
+		});
+	}
+
+	function loadDocument(uri, text) {
+		$('#selected-document h2').html(uri);
+		$('#selected-document span').html(text.replace(/\n/g, "<br>"));
+
+		// load document entities
+		loadEntities(uri);
+
+	}
+	
+	function populateTopEntities(data, selector){
+		$(selector).html('');
+		for( var i=0; i<data.length; i++){
+			var d = data[i];			
+			$('<li/>').html(d.anchorOf + " (" + d.count + " mentions)").appendTo(selector);
+		}
+	}
+	
+	function loadTopEntities(){
+		$.get(apiBase + "/stats/entities", function(data){
+			populateTopEntities(data["http://dbpedia.org/ontology/Person"], "#top-persons");
+			populateTopEntities(data["http://dbpedia.org/ontology/Location"], "#top-locations");
+			populateTopEntities(data["http://dbpedia.org/ontology/Organisation"], "#top-organisations");
+			populateTopEntities(data["http://www.w3.org/2006/time#TemporalEntity"], "#top-temp");
+		});
+	}
+	
+	function loadGeneralStats(){
+		$('#general-stats').html("");
+		$.get(apiBase + "/stats/general", function(data){
+			$('<li/>').html( "Number of triples: " + data.numberOfTriples ).appendTo($('#general-stats'));
+			$('<li/>').html( "Number of contexts: " + data.numberOfContexts ).appendTo($('#general-stats'));
+		});
+	}
+
+	$(document).ready(
+			function() {
+				$.get(apiBase + "/authorities/api/load-contexts", function(
+						result) {
+					data.documents = result;
+
+					$('#documents').html("");
+					for (var i = 0; i < result.length; i++) {
+						var doc = result[i];
+						var html = "<li><a href='#' index='" + i + "'>"
+								+ doc.uri + '</a></li>\n';
+						$("#documents").append(html);
+					}
+
+					$("#documents a").click(function(e) {
+						e.preventDefault();
+
+						// load document content
+						var index = $(this).attr("index");
+						var doc = data.documents[index];
+						loadDocument(doc.uri, doc.text);
+					});
+				});
+				
+				loadTopEntities();
+				loadGeneralStats();
+			});
+</script>
+</head>
+<body>
+	<h1>Find authoritative documents in the Mendelsohn Collection</h1>
+
+	<div class="field first-row" style="float: left" >
+		<h2>Documents</h2>
+		<ul id="documents"></ul>
+	</div>
+
+
+	<div class="field first-row" style="float: left" id="selected-document">
+		<h2>...</h2>
+		<span>...</span>
+	</div>
+	
+	<div style="clear:both"></div>
+
+	<div class="field second-row" style="float: left">
+		<h2>Entities in this document</h2>
+		<ul id="entities"></ul>
+	</div>
+
+
+	<div class="field second-row" style="float:left">
+		<h2 id="authorities-heading">Authorative documents</h2>
+		<ul id="authorities"></ul>
+	</div>
+	
+	<div style="clear:both"></div>
+	
+	<h1>Statistics</h1>
+	
+	<div class="field first-row" style="float: left; min-height:150px;" >
+		<h2>General</h2>
+		<ul id="general-stats"></ul>
+	</div>
+	
+	<div style="clear:both"></div>
+	
+	<div class="field first-row" style="float: left" >
+		<h2>Top Persons</h2>
+		<ul id="top-persons"></ul>
+	</div>
+
+	<div class="field first-row" style="float: left" >
+		<h2>Top Locations</h2>
+		<ul id="top-locations"></ul>
+	</div>
+	
+	<div style="clear:both"></div>
+	
+	<div class="field first-row" style="float: left" >
+		<h2>Top Temporal Expressions</h2>
+		<ul id="top-temp"></ul>
+	</div>
+
+	<div class="field first-row" style="float: left" >
+		<h2>Top Organisations</h2>
+		<ul id="top-organisations"></ul>
+	</div>
+	
+	<div style="clear:both"></div>
+</body>
+</html>
