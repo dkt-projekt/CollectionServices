@@ -1,3 +1,2 @@
 # CollectionServices
 
-Checkout demos here
