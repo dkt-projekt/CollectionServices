@@ -145,65 +145,14 @@ div.second-row{
 		});
 	}
 
-	$(document).ready(
-			function() {
-				$.get(apiBase + "/authorities/api/load-contexts", function(
-						result) {
-					data.documents = result;
-
-					$('#documents').html("");
-					for (var i = 0; i < result.length; i++) {
-						var doc = result[i];
-						var html = "<li><a href='#' index='" + i + "'>"
-								+ doc.uri + '</a></li>\n';
-						$("#documents").append(html);
-					}
-
-					$("#documents a").click(function(e) {
-						e.preventDefault();
-
-						// load document content
-						var index = $(this).attr("index");
-						var doc = data.documents[index];
-						loadDocument(doc.uri, doc.text);
-					});
-				});
-				
+	$(document).ready(function(){
 				loadTopEntities();
 				loadGeneralStats();
 			});
 </script>
 </head>
 <body>
-	<h1>Find authoritative documents in the Mendelsohn Collection</h1>
-
-	<div class="field first-row" style="float: left" >
-		<h2>Documents</h2>
-		<ul id="documents"></ul>
-	</div>
-
-
-	<div class="field first-row" style="float: left" id="selected-document">
-		<h2>...</h2>
-		<span>...</span>
-	</div>
-	
-	<div style="clear:both"></div>
-
-	<div class="field second-row" style="float: left">
-		<h2>Entities in this document</h2>
-		<ul id="entities"></ul>
-	</div>
-
-
-	<div class="field second-row" style="float:left">
-		<h2 id="authorities-heading">Authorative documents</h2>
-		<ul id="authorities"></ul>
-	</div>
-	
-	<div style="clear:both"></div>
-	
-	<h1>Statistics</h1>
+	<h1>Statistics about Mendelsohn collection</h1>
 	
 	<div class="field first-row" style="float: left; min-height:150px;" >
 		<h2>General</h2>
