@@ -1,0 +1,115 @@
+<html>
+<head>
+<script
+	src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+<link rel="stylesheet"
+	href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.0/themes/smoothness/jquery-ui.css">
+<script
+	src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.0/jquery-ui.min.js"></script>
+<style type="text/css">
+body {
+	background-color: #DDDDDD;
+}
+
+h1 {
+	background-color: white;
+	border: 1px solid black;
+	padding: 20px;
+	margin: 20px;
+	width: 1080px;
+}
+
+li {
+	list-style-type: none;
+	padding-left: 1px;
+	margin-left: 0;
+}
+
+ul {
+	padding-left: 0;
+	margin-left: 0;
+}
+
+ul.glossar{
+	margin-left:15px;
+}
+
+div.field {
+	border: 1px solid black;
+	padding: 20px;
+	width: 500px;
+	margin: 20px;
+	max-height: 700px;
+	overflow-y: auto;
+	background-color: white;
+}
+
+div.first-row{
+	min-height: 500px;
+}
+div.second-row{
+	min-height: 300px;
+}
+</style>
+<script type="text/javascript">
+	data = {
+		documents : Array(),
+		entities : Array()
+	};
+
+	var documents = Array();
+	var apiBase = "http://localhost:8080";
+
+	$(document).ready(function(){
+		$.get(apiBase + "/glossary", function(data){
+			var html = "<p>";
+			for( var firstChar in data ){
+				html += '<a href="#ref-' + firstChar + '">' + firstChar.toUpperCase() + "</a> ";
+			}
+			html += "</p>";
+			$('#glossary').prepend(html);
+
+			
+			for( var firstChar in data ){
+				var html = "<h2 id=\"ref-" + firstChar + "\">" + firstChar.toUpperCase() + "</h2>\n<ul>\n";
+				$('#glossary-container').append(html);
+				
+				for( var i=0; i<data[firstChar].length; i++){
+					o = data[firstChar][i];
+					var html = "<li><strong>" + o["word"] + "\n</strong><ul class=\"glossar\">";
+					for( var j=0; j<o["references"].length; j++){
+						html += "<li><a href=\"#\">" + o["references"][j] + "</a></li>\n";
+					}
+					html += "</ul></li>";
+					$('#glossary-container').append(html);
+
+				}
+				$('#glossary-container').append("</ul>");
+			}
+			
+			$('#glossary-container a').click(function(e){
+				e.preventDefault();
+				var res = $(this).html();
+				$.get(apiBase + '/authorities/api/load-text?resource=' + encodeURIComponent(res), function(result){
+					$('#selected-document h2').html(res);
+					$('#selected-document span').html(result.replace(/\n/g, "<br>"));
+					
+				});
+			});	
+		});
+	});
+</script>
+</head>
+<body>
+	<h1>Auto Glossary</h1>
+	
+	<div class="field" id="glossary" style="float: left; height:1000px" >
+		<div id="glossary-container"></div>
+	</div>
+	
+	<div class="field" style="float: left" id="selected-document">
+		<h2>...</h2>
+		<span>...</span>
+	</div>
+</body>
+</html>

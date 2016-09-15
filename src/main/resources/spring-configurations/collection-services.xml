@@ -8,6 +8,7 @@
 	http://www.springframework.org/schema/context/spring-context.xsd">
 
 	<context:component-scan base-package="eu.freme.common"/>
+	<context:component-scan base-package="de.dkt.eservices.collection.autoglossary"/>
 	<bean name="findAuthoritiesConfig" class="de.dkt.eservices.collection.authorities.FindAuthoritiesConfiguration"/>
 	<bean name="statisConfig" class="de.dkt.eservices.collection.stats.StatsConfig"/>
 </beans>
