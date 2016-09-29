@@ -73,6 +73,7 @@ div.second-row{
 			if( data.length == 0 ){
 				$('#links').html("No named entities available");
 			}
+			var total = 0;
 			for( var i=0; i<data.length; i++ ){
 				var set = data[i];
 				
@@ -81,9 +82,12 @@ div.second-row{
 				for( var j=0; j<data[i].length; j++){
 					var word = data[i][j];
 					$("<li>").html(word.word + " (" + word.count + " occurences)").appendTo(ul);
+					total += word.count;
 				}
 				$("<hr>").appendTo("#links");
 			}
+			
+			$('<p>').html("Total number of entities: " + total).prependTo("#links");
 			
 			// add links
 			/* return;
