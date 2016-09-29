@@ -12,4 +12,5 @@
 	<context:component-scan base-package="de.dkt.eservices.collection.tfidf"/>
 	<bean name="findAuthoritiesConfig" class="de.dkt.eservices.collection.authorities.FindAuthoritiesConfiguration"/>
 	<bean name="statisConfig" class="de.dkt.eservices.collection.stats.StatsConfig"/>
+	<bean name="LinksConfig" class="de.dkt.eservices.collection.links.LinksConfig"/>
 </beans>

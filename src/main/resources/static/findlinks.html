@@ -1,0 +1,182 @@
+<html>
+<head>
+<script
+	src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+<link rel="stylesheet"
+	href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.0/themes/smoothness/jquery-ui.css">
+<script
+	src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.0/jquery-ui.min.js"></script>
+<title>Normalize Named Entities</title>
+<style type="text/css">
+body {
+	background-color: #DDDDDD;
+}
+
+h1 {
+	background-color: white;
+	border: 1px solid black;
+	padding: 20px;
+	margin: 20px;
+	width: 1080px;
+}
+
+li {
+	list-style-type: none;
+	padding-left: 1px;
+	margin-left: 0;
+}
+
+ul {
+	padding-left: 0;
+	margin-left: 0;
+}
+
+div.field {
+	border: 1px solid black;
+	padding: 20px;
+	width: 1080px;
+	margin: 20px;
+	max-height: 500px;
+	overflow-y: auto;
+	background-color: white;
+}
+
+div.first-row{
+	min-height: 1080px;
+}
+div.second-row{
+	min-height: 300px;
+}
+
+#slider{
+	width:300px;
+}
+</style>
+<script type="text/javascript">
+	var apiBase = ".";
+	var kill = false;	
+
+	function loadLinks(){
+		kill = true;
+		$('#links').html("");
+		$('<img>').attr("src", "loader.gif").appendTo("#links");
+		
+		var threshold = $('#slider').slider("value");
+		threshold = parseInt(threshold)/100.0;
+		var type= $('#type').val();
+		
+		$.get(apiBase + "/find-links?threshold=" + threshold + "&type=" + type, function(data){
+			kill = false;
+			// create ui
+			$('#links').html("");
+			
+			if( data.length == 0 ){
+				$('#links').html("No named entities available");
+			}
+			for( var i=0; i<data.length; i++ ){
+				var set = data[i];
+				
+				var div = $("<div>").attr("id", "set-" + i).appendTo("#links");
+				var ul = $("<ul>").appendTo(div);
+				for( var j=0; j<data[i].length; j++){
+					var word = data[i][j];
+					$("<li>").html(word.word + " (" + word.count + " occurences)").appendTo(ul);
+				}
+				$("<hr>").appendTo("#links");
+			}
+			
+			// add links
+			/* return;
+			var url ="http://api.freme-project.eu/current/e-entity/freme-ner/documents?language=de&dataset=dbpedia&outformat=json&mode=link&informat=text&filter=extract-entities-only&input=";	
+			for( var i=0; i<data.length && !kill; i++ ){
+				var word = encodeURI(data[i][0].word);
+				
+				jQuery.ajax({
+					url: url + word, 
+					success: function(result){
+						if( kill ) return;
+						var link = result.results.bindings[0];
+						if( link != undefined ){
+							link = link.entity.value;
+						}
+						if( link != undefined ){
+							$('<p>').append(
+								$('<a>').attr("href", link).attr("target", "_blank").html(link).appendTo('#set-' + i)
+							);
+						}
+					},
+			        async: false
+			    });
+			} */
+		});
+	}
+	
+	$(document).ready(function(){
+		
+		$('#slider').slider({
+			min: 0,
+			max: 100,
+			value: 25,
+			slide: function(event, ui){
+				$('#threshold').html(ui.value/100);
+			},
+			stop: function(){
+				loadLinks();
+			}
+		});
+		
+		$('#type').change(function(){
+			loadLinks();
+		});
+		loadLinks();
+	});
+
+</script>
+</head>
+<body>
+	<h1>Normalize Named Entities</h1>
+
+	<div class="field" style="float: left" id="settings" >
+		<h2>Settings</h2>
+		<table>
+			<tr>
+				<td>Threshold: <span id="threshold">0.25</span></p></td>
+				<td>
+					<div id="slider"></div>
+				</td>
+			</tr>
+			<tr>
+				<td>Entity type:</td>
+				<td>
+					<select id="type">
+						<option value="http%3A%2F%2Fdbpedia.org%2Fontology%2FPerson">Persons</option>
+						<option value="http%3A%2F%2Fdbpedia.org%2Fontology%2FOrganisation%0A">Organizations</option>
+						<option value="http%3A%2F%2Fdbpedia.org%2Fontology%2FLocation%0A">Locations</option>
+					</select>
+				</td>
+			</tr>
+		</table>
+	</div>
+	<div style="clear:both"></div>
+	<div class="field " style="float: left">
+		<h2>Named Entities</h2>
+		<div id="links"></div>
+	</div>
+	
+<!-- 	<div style="clear:both"></div>
+
+	<div class="field second-row" style="float: left">
+		<h2>Entities in this document</h2>
+		<ul id="entities"></ul>
+	</div>
+
+
+	<div class="field second-row" style="float:left">
+		<h2 id="authorities-heading">Authorative documents</h2>
+		<ul id="authorities"></ul>
+	</div>
+	
+	<div style="clear:both"></div>
+	 -->
+</body>
+</html>

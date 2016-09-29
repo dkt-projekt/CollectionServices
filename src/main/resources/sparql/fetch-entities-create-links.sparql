@@ -1,0 +1,10 @@
+prefix nif: <http://persistence.uni-leipzig.org/nlp2rdf/ontologies/nif-core#> 
+prefix itsrdf: <http://www.w3.org/2005/11/its/rdf#>
+
+select (count(?text) as ?count) ?text ?class WHERE{ 
+ ?s itsrdf:taClassRef ?class .
+ ?s nif:anchorOf ?text .
+ FILTER NOT EXISTS { ?s itsrdf:taClassRef <http://www.w3.org/2006/time#TemporalEntity> }
+}
+group by ?text ?class
+order by desc (?count )
