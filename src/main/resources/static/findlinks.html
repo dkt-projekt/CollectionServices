@@ -83,14 +83,15 @@ div.second-row{
 				for( var j=0; j<data[i].length; j++){
 					var word = data[i][j];
 					$("<li>").html(word.word + " (" + word.count + " occurences)").appendTo(ul);
+					total += word.count;	
 					if( j>0 ){
-						totalChanged += word.count;						
+						totalChanged += word.count;
 					}
 				}
 				$("<hr>").appendTo("#links");
 			}
 			
-			$('<p>').html("Total number of entities: " + total).prependTo("#links");
+			$('<p>').html("Total number of entities: " + total + "<br>Number of edited entities: " + totalChanged).prependTo("#links");
 			
 			// add links
 			/* return;
