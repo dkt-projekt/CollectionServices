@@ -64,12 +64,13 @@ public class FindLinksService {
 			for( int j=i+1; j<inputData.size(); j++ ){
 				String word2 = inputData.get(j);
 				if( word2.length() <= 2 ) continue;
-				
 				Double dist = new Double(ld.apply(word1, word2));
 				dist /= Math.max(word1.length(), word2.length());
 				if( dist>=0 && dist<=threshold ){
 					set.add(word1);
 					set.add(word2);
+					inputData.remove(j);
+					j--;
 				}
 			}
 			if( set.size()>0 ){
