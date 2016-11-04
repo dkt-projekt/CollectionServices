@@ -48,9 +48,24 @@ div.second-row{
 	min-height: 300px;
 }
 
+img {
+    margin-right: 4px;
+    position: relative;
+    top: 4px 
+}
+
 #slider{
 	width:300px;
 }
+
+.in{
+	color: black;
+}
+
+.in.out{
+	color: grey;
+}
+
 </style>
 <script type="text/javascript">
 	var apiBase = ".";
@@ -75,22 +90,33 @@ div.second-row{
 			}
 			var total = 0;
 			var totalChanged = 0;
+			//iterate over the datasets that contain similar named entities
 			for( var i=0; i<data.length; i++ ){
 				var set = data[i];
 				
 				var div = $("<div>").attr("id", "set-" + i).appendTo("#links");
 				var ul = $("<ul>").appendTo(div);
+				//iterate over all occurences of this similar named entity data set
 				for( var j=0; j<data[i].length; j++){
 					var word = data[i][j];
-					$("<li>").html(word.word + " (" + word.count + " occurences)").appendTo(ul);
+					var idword = "dummy"+i.toString()+j.toString();
+					$("<li>").attr({
+						"id": idword,
+						"class": "in"
+					}).html(word.word + " (" + word.count + " occurences)  ").appendTo(ul);
+					
+					$("<img>").attr({
+						"src": "close-icon.png",
+						"id": idword+"im"
+					}).prependTo("#"+idword);
+
 					total += word.count;	
 					if( j>0 ){
 						totalChanged += word.count;
 					}
 				}
 				$("<hr>").appendTo("#links");
-			}
-			
+			} 
 			$('<p>').html("Total number of entities: " + total + "<br>Number of edited entities: " + totalChanged).prependTo("#links");
 			
 			// add links
@@ -120,7 +146,7 @@ div.second-row{
 	}
 	
 	$(document).ready(function(){
-		
+	//$(window).on("load",function(){
 		$('#slider').slider({
 			min: 0,
 			max: 100,
@@ -137,7 +163,21 @@ div.second-row{
 			loadLinks();
 		});
 		loadLinks();
+		
+		$('body').on('click','img',function(){
+			var listitemid = this.id.substring(0,this.id.length-2);
+			$("#"+listitemid).toggleClass("out");
+			//var liclass = $("#"+listitemid).attr("class");
+			//alert(liclass);
+			
+			//just hide this name:
+// 			$("#"+listitemid).hide();
+		});
+		
 	});
+	
+	
+	
 
 </script>
 </head>
@@ -148,7 +188,7 @@ div.second-row{
 		<h2>Settings</h2>
 		<table>
 			<tr>
-				<td>Threshold: <span id="threshold">0.25</span></p></td>
+				<td>Threshold: <span id="threshold">0.25</span></td>
 				<td>
 					<div id="slider"></div>
 				</td>
