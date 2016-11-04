@@ -105,10 +105,20 @@ img {
 						"class": "in"
 					}).html(word.word + " (" + word.count + " occurences)  ").appendTo(ul);
 					
+					//add close icon
 					$("<img>").attr({
 						"src": "close-icon.png",
-						"id": idword+"im"
+						"id": idword+"closeIm",
+						"class": "close"
 					}).prependTo("#"+idword);
+					
+					//add magnifier glass
+					$("<img>").attr({
+					"src": "glass-icon.png",
+					"id": idword+"glassIm",
+					"class": "glass"
+					}).prependTo("#"+idword);
+					
 
 					total += word.count;	
 					if( j>0 ){
@@ -146,7 +156,6 @@ img {
 	}
 	
 	$(document).ready(function(){
-	//$(window).on("load",function(){
 		$('#slider').slider({
 			min: 0,
 			max: 100,
@@ -164,14 +173,19 @@ img {
 		});
 		loadLinks();
 		
-		$('body').on('click','img',function(){
-			var listitemid = this.id.substring(0,this.id.length-2);
+		$('body').on('click','.close',function(){
+			var listitemid = this.id.substring(0,this.id.length-7);
 			$("#"+listitemid).toggleClass("out");
 			//var liclass = $("#"+listitemid).attr("class");
 			//alert(liclass);
 			
 			//just hide this name:
 // 			$("#"+listitemid).hide();
+		});
+		
+		$('body').on('click','.glass',function(){
+			//TODO add functionality
+			alert('not yet implemented.');
 		});
 		
 	});
