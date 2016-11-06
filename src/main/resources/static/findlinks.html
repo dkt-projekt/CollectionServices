@@ -66,6 +66,14 @@ img {
 	color: grey;
 }
 
+a:link{
+    color: blue;
+}
+
+a:visited{
+	color: blue;
+}
+
 </style>
 <script type="text/javascript">
 	var apiBase = ".";
@@ -94,17 +102,18 @@ img {
 			for( var i=0; i<data.length; i++ ){
 				var set = data[i];
 				
-				var div = $("<div>").attr("id", "set-" + i).appendTo("#links");
+				var div = $("<div>").attr("id", "set-" + i).data("set",i.toString()).appendTo("#links");
 				var ul = $("<ul>").appendTo(div);
 				//iterate over all occurences of this similar named entity data set
 				for( var j=0; j<data[i].length; j++){
 					var word = data[i][j];
 					var idword = "dummy"+i.toString()+j.toString();
+					//add entity in list
 					$("<li>").attr({
 						"id": idword,
 						"class": "in"
-					}).html(word.word + " (" + word.count + " occurences)  ").appendTo(ul);
-					
+					}).html(word.word + " (" + word.count + " occurences)  ").data("entity", word.word).appendTo(ul);
+										
 					//add close icon
 					$("<img>").attr({
 						"src": "close-icon.png",
@@ -125,10 +134,31 @@ img {
 						totalChanged += word.count;
 					}
 				}
-				$("<hr>").appendTo("#links");
+
+				// add list of documents which contain the current entity 
+				// inside a div container
+				$("<hr>").attr("id","line" + i.toString()).appendTo("#links");
+				$("<div>").attr({
+					"id": "url-set" + i.toString()
+				}).insertBefore("#line"+i.toString());
+				$("<h2>").attr({
+					"class": "header",
+					"id": "url-header" + i.toString()
+				}).appendTo("#url-set" + i.toString());
+				
+				$("<a>").attr({
+					"id": "authorities-heading" + i.toString(),
+					"href":"#"
+				}).appendTo("#url-header" + i.toString());
+				
+				$("<ul>").attr({
+					"id": "authorities" + i.toString(),
+					"class": "url-list"
+				}).insertAfter("#url-header" + i.toString());
+
 			} 
 			$('<p>').html("Total number of entities: " + total + "<br>Number of edited entities: " + totalChanged).prependTo("#links");
-			
+	
 			// add links
 			/* return;
 			var url ="http://api.freme-project.eu/current/e-entity/freme-ner/documents?language=de&dataset=dbpedia&outformat=json&mode=link&informat=text&filter=extract-entities-only&input=";	
@@ -155,6 +185,43 @@ img {
 		});
 	}
 	
+	function loadAuthorities(entity, set) {
+		$('#authorities-heading'+ set).html(
+			"Authoritative documents about \"" + entity + "\"");
+	$.get(apiBase + "/authorities/api/load-authorities?text="
+			+ encodeURIComponent(entity), function(result) {
+
+		$('#authorities' + set).html("");
+
+		for (var i = 0; i < result.length; i++) {
+			var doc = result[i];
+			var html = "<li id=link"+set+i.toString()+"><a uri='" + encodeURIComponent(doc["doc"])
+					+ "' href='#'>" + doc["doc"] + " (" + doc["count"]
+					+ " occurences)" + "</a></li>\n";
+			$('#authorities' + set).append(html);
+		}
+
+		$('.url-list a').click(function(e) {
+			e.preventDefault();
+			var uri = $(this).attr("uri");
+			uri = decodeURIComponent(uri);
+			loadDocumentFromAuthority(uri);
+			$("#dialogbox").dialog({title: uri});
+		});
+	});
+	}
+	
+	function loadDocumentFromAuthority(uri) {
+		$.get(apiBase + "/authorities/api/load-text?resource="
+				+ encodeURIComponent(uri), function(result) {
+			loadDocument(uri, result);
+		});
+	}
+	
+	function loadDocument(uri, text) {
+		$("#document-content").html(text.replace(/\n/g, "<br>"));
+	}
+	
 	$(document).ready(function(){
 		$('#slider').slider({
 			min: 0,
@@ -169,25 +236,33 @@ img {
 		});
 		
 		$('#type').change(function(){
-			loadLinks();
+		loadLinks();
 		});
 		loadLinks();
 		
 		$('body').on('click','.close',function(){
-			var listitemid = this.id.substring(0,this.id.length-7);
+			var listitemid = $(this).closest("li").prop("id");
+			//make the entity appear grey
 			$("#"+listitemid).toggleClass("out");
-			//var liclass = $("#"+listitemid).attr("class");
-			//alert(liclass);
-			
-			//just hide this name:
+			//just hide this entity:
 // 			$("#"+listitemid).hide();
 		});
 		
 		$('body').on('click','.glass',function(){
-			//TODO add functionality
-			alert('not yet implemented.');
+			var entity = $(this).closest("li").data("entity");
+			var set =  $(this).closest("div").data("set");
+			loadAuthorities(entity, set);
+	        $("#url-set"+set).show();
+
 		});
 		
+		// clicking on the header for the list of documents containing the
+		// entity makes the list disappear again
+		$('body').on('click','.header', function(e){
+			e.preventDefault();
+			var divId = $(this).closest("div").attr("id");
+			$("#"+divId).hide();
+		});
 	});
 	
 	
@@ -224,6 +299,18 @@ img {
 		<h2>Named Entities</h2>
 		<div id="links"></div>
 	</div>
+	
+	<div id="dialogbox"><span id=document-content></span></div>
+	
+	
+	 <!--  show entities in window below the links-->
+<!-- 	<div class="field second-row" style="float:left"> -->
+<!-- 		<h2 id="authorities-heading">Authorative documents</h2> -->
+<!-- 		<ul id="authorities"></ul> -->
+<!-- 	</div> -->
+	
+	
+	
 	
 <!-- 	<div style="clear:both"></div>
 
